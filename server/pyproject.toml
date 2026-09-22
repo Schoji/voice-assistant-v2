@@ -1,0 +1,15 @@
+[project]
+name = "aleksy-server"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "aleksy-protocol",
+    "mlx-audio>=0.5.1",
+    "mlx-lm>=0.31.3",
+    "num2words>=0.5.14",
+    "websockets>=17.1",
+]
+
+[tool.uv.sources]
+aleksy-protocol = { path = "../shared" }

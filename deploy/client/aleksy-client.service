@@ -1,0 +1,15 @@
+[Unit]
+Description=Aleksy voice client (wakeword, VAD, transport)
+After=network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=schoji
+WorkingDirectory=/home/schoji/aleksy/client
+ExecStart=/home/schoji/.local/bin/uv run python main.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

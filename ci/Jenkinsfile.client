@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    triggers {
+        pollSCM('* * * * *')
+    }
+
+    environment {
+        TARGET = '/home/schoji/aleksy'
+    }
+
+    stages {
+        stage('Sync') {
+            steps {
+                sh '''
+                    mkdir -p "$TARGET"
+                    rsync -a --delete client/ "$TARGET/client/"
+                    rsync -a --delete shared/ "$TARGET/shared/"
+                '''
+            }
+        }
+
+        stage('Install') {
+            steps {
+                sh 'cd "$TARGET/client" && uv sync --frozen'
+            }
+        }
+
+        stage('Restart') {
+            steps {
+                sh 'sudo systemctl restart aleksy-client'
+            }
+        }
+    }
+}

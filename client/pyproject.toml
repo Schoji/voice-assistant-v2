@@ -1,0 +1,15 @@
+[project]
+name = "aleksy-client"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13"
+dependencies = [
+    "aleksy-protocol",
+    "luma-oled>=3.15.0",
+    "pymicro-vad>=2.1.0",
+    "pymicro-wakeword>=2.4.1",
+    "websockets>=17.1",
+]
+
+[tool.uv.sources]
+aleksy-protocol = { path = "../shared" }

@@ -1,0 +1,23 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Runtime
+server/recordings/
+client/state.json
+
+# Kiosk UI - undecided feature, kept out of version control for now
+client/ui/
+
+# macOS
+.DS_Store
+
+# Tooling
+.ruff_cache/
