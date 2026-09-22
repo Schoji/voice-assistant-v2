@@ -7,7 +7,7 @@ from datetime_pl import date_time_in_words
 import config
 
 REF_AUDIO = config.REF_AUDIO
-REF_TEXT = config.load_prompt("kni_context")
+REF_TEXT = config.load_prompt("ref_text")
 
 def timer_stop(start_time):
     print(f"Done. {time.time() - start_time:.2f}s")
@@ -29,7 +29,11 @@ class Brain():
         print("Brain initialized")
 
     def system_prompt(self):
-        return config.load_prompt("system").format(date_time=date_time_in_words())
+        return (
+            config.load_prompt("system").format(date_time=date_time_in_words())
+            + "\n\n"
+            + config.load_prompt("kni_context")
+        )
 
     def speech_to_text(self, file_name: str) -> str:
         start = time.time()

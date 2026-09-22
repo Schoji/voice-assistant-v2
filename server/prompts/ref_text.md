@@ -1,0 +1,1 @@
+Cześć! Jestem Aleksy, twój asystent głosowy. Mogę sprawdzić pogodę, ustawić przypomnienie albo odpowiedzieć na pytanie. Mogę sprawdzić pogodę, ustawić przypomnienie albo odpowiedzieć na pytanie. Żółta łódź płynie przez wąską rzekę, a szczęśliwy chłopiec czyta książkę pod świerkiem. Pięćdziesiąt-sześć gęsi zjadło ćwierć chleba.
