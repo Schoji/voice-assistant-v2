@@ -9,6 +9,14 @@ OUT_DEVICE = "default"
 
 FILLER_WORD = "assets/tak.wav"
 
+# played once the user stops talking, to cover the wait for the server
+THINKING_WORDS = [
+    "assets/chwileczke.wav",
+    "assets/momencik.wav",
+    "assets/sekunda.wav",
+    "assets/lemon.wav",
+]
+
 CHUNK = 320              # models need 10ms per execution. 160 000 * 10 ms = 160 samples * 2 bytes = 320 bytes
 SILENCE_LIMIT = 80
 START_LIMIT = 250

@@ -1,6 +1,6 @@
 import time, signal, sys
 from listener import mww, feats, vad, reset
-from audio import open_mic, play_filler_word
+from audio import open_mic, play_filler_word, play_thinking_word
 from transport import send_file
 import config
 import asyncio
@@ -56,6 +56,7 @@ try:
 
                 limit = SILENCE_LIMIT if speech_started else START_LIMIT
                 if silence >= limit or len(frames) >= MAX_FRAMES:
+                    play_thinking_word()
                     asyncio.run(send_file(frames))
                     mic.kill()
                     mic = open_mic()
