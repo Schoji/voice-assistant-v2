@@ -5,9 +5,11 @@ Wants=network-online.target
 
 [Service]
 Type=simple
+# schoji, not jenkins: /dev/snd is root:audio and only schoji is in that group.
+# Jenkins builds the venv, this service only reads it.
 User=schoji
-WorkingDirectory=/home/schoji/aleksy/client
-ExecStart=/home/schoji/.local/bin/uv run python main.py
+WorkingDirectory=/srv/aleksy/client
+ExecStart=/srv/aleksy/client/.venv/bin/python main.py
 Restart=always
 RestartSec=3
 

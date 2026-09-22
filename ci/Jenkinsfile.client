@@ -11,7 +11,10 @@ pipeline {
     }
 
     environment {
-        TARGET = '/home/schoji/aleksy'
+        // Not under /home/schoji: that directory is mode 700, the jenkins user
+        // cannot even traverse into it.
+        TARGET = '/srv/aleksy'
+        PATH = "/usr/local/bin:${env.PATH}"
     }
 
     stages {
