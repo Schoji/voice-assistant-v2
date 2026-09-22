@@ -8,7 +8,7 @@ TTS_MODEL = "mlx-community/OmniVoice-bf16"
 LLM_MODEL = "mlx-community/Qwen3-8B-4bit"
 MAX_TOKENS = 100
 
-REF_AUDIO = "assets/aleksy.wav"
+REF_AUDIO = "assets/aleksy_ref.wav"
 
 RECORDINGS_DIR = Path("./recordings")
 PROMPTS_DIR = Path("./prompts")

@@ -12,6 +12,10 @@ REF_TEXT = config.load_prompt("ref_text")
 def timer_stop(start_time):
     print(f"Done. {time.time() - start_time:.2f}s")
 
+def cut_at_last_sentence(text):
+    end = max(text.rfind("."), text.rfind("!"), text.rfind("?"))
+    return text[:end + 1] if end != -1 else text
+
 class Brain():
     def __init__(self):
         self.messages = [
@@ -47,8 +51,8 @@ class Brain():
         start = time.time()
         new_message =  {"role": "user", "content": user_input}
         self.messages.append(new_message)
-        prompt = self.tokenizer.apply_chat_template([self.messages[0]] + self.messages[-6:], add_generation_prompt=True, enable_thinking=False)
-        response = lm.generate(self.llm_model, self.tokenizer, prompt=prompt, max_tokens=config.MAX_TOKENS, verbose=True)
+        prompt = self.tokenizer.apply_chat_template([self.messages[0]] + self.messages[1:][-6:], add_generation_prompt=True, enable_thinking=False)
+        response = cut_at_last_sentence(lm.generate(self.llm_model, self.tokenizer, prompt=prompt, max_tokens=config.MAX_TOKENS, verbose=True))
         self.messages.append({"role": "assistant", "content": response})
         timer_stop(start)
         return response
