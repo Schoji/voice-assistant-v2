@@ -9,6 +9,8 @@ OUT_DEVICE = "default"
 
 FILLER_WORD = "assets/tak.wav"
 
+STARTUP_WORD = "assets/zainicjalizowany.wav"
+
 # played once the user stops talking, to cover the wait for the server
 THINKING_WORDS = [
     "assets/chwileczke.wav",
@@ -22,3 +24,6 @@ SILENCE_LIMIT = 80
 START_LIMIT = 250
 MAX_FRAMES = 1000
 COOLDOWN = 1.5 # cooldown so this cringelord doesn't detect the wakeword 10000000 times a second
+
+SLEEP_AFTER = 30 # seconds of waiting for the wakeword before the face falls asleep
+ERROR_HOLD = 3 # seconds the error face stays up before going back to idle

@@ -9,13 +9,23 @@ def open_mic():
     return subprocess.Popen(config.MIC, stdout=subprocess.PIPE)
 
 
+def play_word(path):
+    try:
+        subprocess.run(["aplay", "-q", "-D", config.OUT_DEVICE, path], check=True)
+    except (OSError, subprocess.CalledProcessError) as e:
+        print(f"  (nie udało się odtworzyć {path}: {e})", flush=True)
+
+
 def play_filler_word():
     """plays out the filler word so we know that aleksy hears us
     """
-    try:
-        subprocess.run(["aplay", "-q", "-D", config.OUT_DEVICE, config.FILLER_WORD], check=True)
-    except (OSError, subprocess.CalledProcessError) as e:
-        print(f"  (nie udało się odtworzyć {config.FILLER_WORD}: {e})", flush=True)
+    play_word(config.FILLER_WORD)
+
+
+def play_startup_word():
+    """announces that the service is up, before the mic opens so we don't hear ourselves
+    """
+    play_word(config.STARTUP_WORD)
 
 
 def play_thinking_word():

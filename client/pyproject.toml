@@ -5,9 +5,10 @@ description = "Add your description here"
 requires-python = ">=3.13"
 dependencies = [
     "aleksy-protocol",
-    "luma-oled>=3.15.0",
+    "pillow>=12.3.0",
     "pymicro-vad>=2.1.0",
     "pymicro-wakeword>=2.4.1",
+    "smbus2>=0.6.1",
     "websockets>=17.1",
 ]
 
