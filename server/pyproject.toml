@@ -8,6 +8,8 @@ dependencies = [
     "mlx-audio>=0.5.1",
     "mlx-lm>=0.31.3",
     "num2words>=0.5.14",
+    "openai>=3.20.0",
+    "python-dotenv>=1.2.3",
     "websockets>=17.1",
 ]
 

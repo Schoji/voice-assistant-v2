@@ -21,3 +21,6 @@ client/ui/
 
 # Tooling
 .ruff_cache/
+
+# Secrets
+.env
