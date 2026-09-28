@@ -7,7 +7,7 @@ SERVER_URIS = [
 ]
 CONNECT_TIMEOUT = 3
 # the server sends audio only once the whole answer is synthesized
-RESPONSE_TIMEOUT = 45
+RESPONSE_TIMEOUT = 60
 
 MIC = ["arecord", "-D", "default", "-q",
        "-r", str(MIC_RATE), "-c", "1", "-f", "S16_LE", "-t", "raw"]

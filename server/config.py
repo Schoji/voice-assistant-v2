@@ -12,10 +12,13 @@ STT_MODEL = "mlx-community/Qwen3-ASR-0.6B-8bit"
 TTS_MODEL = "mlx-community/OmniVoice-bf16"
 LLM_MODEL = "mlx-community/Qwen3-8B-4bit"
 MAX_TOKENS = 100
-# answers are spoken sentence by sentence, so this only keeps a runaway answer from talking forever
-MAX_RESPONSE_CHARS = 500
+# TTS takes ~0.055 s per character on the M2 mini at 16 steps, this keeps the wait well under the client timeout
+MAX_RESPONSE_CHARS = 300
 # OmniVoice unmasking steps: time scales linearly (M2 mini, 6 s of speech: 32 -> 9.1 s, 16 -> 4.6 s)
 TTS_NUM_STEPS = 16
+# sentence by sentence starts talking sooner, but on the M2 synthesis barely keeps up with speech,
+# so it leaves pauses between sentences; off = one call for the whole answer
+TTS_STREAM_SENTENCES = False
 # sentences shorter than this are merged with the next one, OmniVoice sounds odd on a lone "Cześć!"
 TTS_MIN_CHUNK_CHARS = 30
 # a long first sentence is split at a comma, since nothing plays until the first chunk is synthesized

@@ -116,8 +116,8 @@ class Brain():
     def text_to_speech(self, input_text: str):
         start = time.time()
         print(f"Generating speech from text: {input_text}")
-        # one sentence at a time, so the client starts playing after the first one instead of the whole answer
-        for chunk in split_sentences(input_text):
+        chunks = split_sentences(input_text) if config.TTS_STREAM_SENTENCES else [input_text]
+        for chunk in chunks:
             for result in self.tts_model.generate(
                 text=chunk,
                 ref_audio=REF_AUDIO,
