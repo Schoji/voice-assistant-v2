@@ -24,6 +24,7 @@ class Brain():
         ]
         self.stt_model = stt.load(config.STT_MODEL)
         self.openai = None
+        self.last_backend = None
         self.llm_model = self.tokenizer = None
         if config.LLM_BACKEND == "openai":
             self.openai = OpenAI(timeout=config.OPENAI_TIMEOUT, max_retries=1)
@@ -66,11 +67,14 @@ class Brain():
     def generate(self, context) -> str:
         if self.openai is not None:
             try:
-                return self.generate_openai(context)
+                response = self.generate_openai(context)
+                self.last_backend = "openai"
+                return response
             except Exception as e:
                 if self.llm_model is None:
                     raise
                 print(f"OpenAI request failed ({e}), falling back to local model")
+        self.last_backend = "local"
         return self.generate_local(context)
 
     def generate_openai(self, context) -> str:

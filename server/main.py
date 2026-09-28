@@ -1,4 +1,5 @@
 import asyncio
+import json
 import websockets
 import time
 import wave
@@ -30,11 +31,22 @@ async def file_handler(ws):
 
     print(f"File saved as {name}")
 
+    start = time.time()
     text = brain.speech_to_text(name)
+    stt, start = time.time() - start, time.time()
     llm_output = brain.process(text)
+    llm, start = time.time() - start, time.time()
     print("Sending bytes to the client")
     for chunk in brain.text_to_speech(llm_output):
         await ws.send(to_pcm16(chunk))
+    tts = time.time() - start
+    # what the client's panel shows; clients that predate it stop reading at the first text message
+    await ws.send(json.dumps({
+        "heard": text,
+        "said": llm_output,
+        "llm_backend": brain.last_backend,
+        "timings": {"stt": stt, "llm": llm, "tts": tts},
+    }, ensure_ascii=False))
     await ws.send(END)
 
 
