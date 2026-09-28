@@ -14,6 +14,16 @@ MIC = ["arecord", "-D", "default", "-q",
 
 OUT_DEVICE = "default"
 
+# set on every start: alsactl store needs sudo, so the mixer level does not survive a reboot
+SPEAKER_CARD = "wm8960soundcard"
+SPEAKER_VOLUME = 113 # -8 dB out of 0-127, 0 dB (121) already distorts
+
+# web panel with the face, conversation history, timings and logs
+PANEL_HOST = "0.0.0.0"
+PANEL_PORT = 5000
+PANEL_HISTORY = 50
+PANEL_LOG_LINES = 300
+
 FILLER_WORD = "assets/tak.wav"
 
 STARTUP_WORD = "assets/zainicjalizowany.wav"

@@ -1,13 +1,18 @@
 import time, signal, sys
 from listener import mww, feats, vad, reset
-from audio import open_mic, play_filler_word, play_startup_word, play_thinking_word
+from audio import open_mic, play_filler_word, play_startup_word, play_thinking_word, set_volume
 from transport import send_file
 from oled.face_display import FaceDisplay
 from websockets.exceptions import WebSocketException
 import config
 import asyncio
+import panel
+import status
 
+status.capture_output()
 face = FaceDisplay().start()
+panel.start(face)
+set_volume()
 play_startup_word()
 mic = open_mic()
 
@@ -26,6 +31,7 @@ recording = False
 speech_started = False
 frames, silence = [], 0
 last = 0.0
+wake_time = 0.0
 idle_since = time.time()
 
 print("Słucham...", flush=True)
@@ -53,6 +59,7 @@ try:
                     if prob > WAKE_THRESHOLD and time.time() - last > COOLDOWN:
                         last = time.time()
                         print("wake!", flush=True)
+                        wake_time = time.time()
                         face.set("listen")
                         play_filler_word()
                         mic.kill()
@@ -75,14 +82,18 @@ try:
                 if silence >= limit or len(frames) >= MAX_FRAMES:
                     face.set("think")
                     play_thinking_word()
+                    conversation = {"time": wake_time, "recording": time.time() - wake_time}
                     try:
-                        asyncio.run(send_file(frames, on_audio=lambda: face.set("talk")))
+                        asyncio.run(send_file(frames, on_audio=lambda: face.set("talk"), result=conversation))
                         face.set("idle")
                     except TimeoutError:
+                        conversation["error"] = "timeout"
                         face.set("error", "timeout")
                     except (OSError, WebSocketException) as e:
                         print(f"  (brak połączenia z serwerem: {e})", flush=True)
+                        conversation["error"] = f"brak serwera: {e}"
                         face.set("error", "brak serwera")
+                    status.add_conversation(conversation)
                     idle_since = time.time()
                     mic.kill()
                     mic = open_mic()

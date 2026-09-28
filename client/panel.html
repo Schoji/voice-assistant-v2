@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aleksy — panel</title>
+<style>
+  :root {
+    --bg: #0e1013; --card: #171a1f; --line: #262a31; --text: #e7e9ec; --muted: #8b929c;
+    --accent: #7cc4ff; --ok: #5fd08a; --warn: #f2c14e; --bad: #ff6b6b;
+    --rec: #9aa4b1; --net: #5b6470; --stt: #7cc4ff; --llm: #c792ea; --tts: #f2c14e; --play: #5fd08a;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f4f5f7; --card: #fff; --line: #e1e4e8; --text: #1b1f24; --muted: #5f6873;
+      --accent: #1f6fb8; --ok: #1d8a4a; --warn: #a86b00; --bad: #c62828;
+      --rec: #8a94a0; --net: #b9c0c8; --stt: #2f86d6; --llm: #8e44c7; --tts: #d49a00; --play: #26a35a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 40px; }
+  header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  h1 { font-size: 22px; margin: 0; letter-spacing: .02em; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-weight: 600; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+  .muted { color: var(--muted); }
+  .offline { color: var(--bad); font-weight: 600; }
+  .grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; }
+  @media (max-width: 800px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+  .wide { grid-column: 1 / -1; }
+  .bezel { background: #000; border-radius: 10px; padding: 14px; border: 1px solid #2b2f36; }
+  .bezel img { display: block; width: 100%; image-rendering: pixelated; filter: sepia(1) hue-rotate(160deg) saturate(3) brightness(1.1); }
+  .quote { margin: 0 0 10px; }
+  .quote b { display: block; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+  .bar { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: var(--line); margin: 10px 0 6px; }
+  .bar span { display: block; height: 100%; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: 0; }
+  .legend em { font-style: normal; color: var(--text); font-variant-numeric: tabular-nums; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+  .stat { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .stat div:first-child { font-size: 12px; color: var(--muted); }
+  .stat div:last-child { font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .history { list-style: none; margin: 0; padding: 0; }
+  .history li { border-top: 1px solid var(--line); padding: 12px 0; }
+  .history li:first-child { border-top: 0; padding-top: 0; }
+  .meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }
+  .err { color: var(--bad); font-weight: 600; }
+  pre { margin: 0; max-height: 380px; overflow: auto; font: 12.5px/1.5 ui-monospace, "SF Mono", Menlo, monospace; white-space: pre-wrap; word-break: break-word; }
+  pre .t { color: var(--muted); }
+  pre .w { color: var(--accent); }
+  pre .e { color: var(--bad); }
+  .empty { color: var(--muted); font-style: italic; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Aleksy</h1>
+    <span class="pill"><span class="dot" id="dot"></span><span id="state">…</span></span>
+    <span class="muted" id="since"></span>
+    <span class="offline" id="offline" hidden>brak połączenia z panelem</span>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Buzia</h2>
+      <div class="bezel"><img id="face" alt="Podgląd wyświetlacza OLED" width="512" height="256"></div>
+    </section>
+
+    <section class="card">
+      <h2>Ostatnia rozmowa</h2>
+      <div id="last"><p class="empty">Jeszcze nikt nie zagadał.</p></div>
+    </section>
+
+    <section class="card wide">
+      <h2>Średnie czasy</h2>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="card wide">
+      <h2>Historia</h2>
+      <ul class="history" id="history"></ul>
+    </section>
+
+    <section class="card wide">
+      <h2>Logi klienta</h2>
+      <pre id="logs"></pre>
+    </section>
+  </div>
+</main>
+
+<script>
+const STATES = {
+  idle:   ["czeka",  "var(--ok)"],
+  listen: ["słucha", "var(--accent)"],
+  think:  ["myśli",  "var(--llm)"],
+  talk:   ["mówi",   "var(--tts)"],
+  sleep:  ["śpi",    "var(--muted)"],
+  error:  ["błąd",   "var(--bad)"],
+};
+const PARTS = [
+  ["recording", "nagrywanie", "var(--rec)"],
+  ["network",   "sieć i reszta", "var(--net)"],
+  ["stt",       "STT", "var(--stt)"],
+  ["llm",       "LLM", "var(--llm)"],
+  ["tts",       "TTS", "var(--tts)"],
+  ["playback",  "odtwarzanie", "var(--play)"],
+];
+
+const $ = id => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => { const n = Object.assign(document.createElement(tag), props); n.append(...kids); return n; };
+const sec = v => v == null ? "—" : v.toFixed(1) + " s";
+const clock = t => new Date(t * 1000).toLocaleTimeString("pl-PL");
+
+function parts(c) {
+  const t = c.timings || {};
+  const p = { recording: c.recording, stt: t.stt, llm: t.llm, tts: t.tts };
+  if (c.first_audio != null) {
+    p.network = Math.max(0, c.first_audio - (t.stt || 0) - (t.llm || 0) - (t.tts || 0));
+    p.playback = Math.max(0, c.total - c.first_audio);
+  } else if (c.total != null && !c.timings) {
+    p.network = c.total;
+  }
+  return p;
+}
+
+function timingBar(c) {
+  const p = parts(c);
+  const sum = PARTS.reduce((a, [k]) => a + (p[k] || 0), 0) || 1;
+  const bar = el("div", { className: "bar" });
+  const legend = el("div", { className: "legend" });
+  for (const [k, label, color] of PARTS) {
+    if (p[k] == null) continue;
+    bar.append(el("span", { title: `${label}: ${sec(p[k])}`, style: `width:${100 * p[k] / sum}%;background:${color}` }));
+    legend.append(el("span", {}, el("i", { style: `background:${color}` }), label + " ", el("em", { textContent: sec(p[k]) })));
+  }
+  return [bar, legend];
+}
+
+function quote(label, text) {
+  return el("p", { className: "quote" }, el("b", { textContent: label }), text || "—");
+}
+
+function conversationMeta(c) {
+  const meta = el("div", { className: "meta" });
+  meta.append(el("span", { textContent: clock(c.time) }));
+  if (c.first_audio != null) meta.append(el("span", { textContent: `odpowiedź po ${sec(c.first_audio)}` }));
+  if (c.llm_backend) meta.append(el("span", { textContent: c.llm_backend === "openai" ? "GPT-6 Luna" : "lokalny LLM" }));
+  if (c.server) meta.append(el("span", { textContent: c.server.replace("ws://", "") }));
+  if (c.error) meta.append(el("span", { className: "err", textContent: c.error }));
+  return meta;
+}
+
+function renderLast(c) {
+  const box = $("last");
+  if (!c) return;
+  box.replaceChildren(quote("Usłyszał", c.heard), quote("Powiedział", c.said), ...timingBar(c), conversationMeta(c));
+}
+
+function renderStats(history) {
+  const ok = history.filter(c => c.first_audio != null);
+  const avg = f => { const v = ok.map(f).filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const items = [
+    ["rozmowy", String(history.length)],
+    ["błędy", String(history.filter(c => c.error).length)],
+    ["do odpowiedzi", sec(avg(c => c.first_audio))],
+    ["STT", sec(avg(c => c.timings?.stt))],
+    ["LLM", sec(avg(c => c.timings?.llm))],
+    ["TTS", sec(avg(c => c.timings?.tts))],
+  ];
+  $("stats").replaceChildren(...items.map(([k, v]) => el("div", { className: "stat" }, el("div", { textContent: k }), el("div", { textContent: v }))));
+}
+
+function renderHistory(history) {
+  const list = $("history");
+  if (!history.length) { list.replaceChildren(el("li", { className: "empty", textContent: "Pusto." })); return; }
+  list.replaceChildren(...history.slice().reverse().map(c =>
+    el("li", {}, quote("Usłyszał", c.heard), quote("Powiedział", c.said), ...timingBar(c), conversationMeta(c))));
+}
+
+function renderLogs(logs) {
+  const pre = $("logs");
+  const stick = pre.scrollHeight - pre.scrollTop - pre.clientHeight < 40;
+  pre.replaceChildren(...logs.flatMap(({ time, line }) => {
+    const cls = /błąd|error|traceback|nie udało|niedostępny|brak/i.test(line) ? "e" : /wake!/.test(line) ? "w" : "";
+    return [el("span", { className: "t", textContent: clock(time) + "  " }), el("span", { className: cls, textContent: line + "\n" })];
+  }));
+  if (stick) pre.scrollTop = pre.scrollHeight;
+}
+
+let lastHistoryKey = "";
+async function poll() {
+  try {
+    const s = await (await fetch("/api/state", { cache: "no-store" })).json();
+    const [label, color] = STATES[s.state] || [s.state, "var(--muted)"];
+    $("state").textContent = label + (s.text ? ` — ${s.text}` : "");
+    $("dot").style.background = color;
+    $("since").textContent = `od ${Math.max(0, Math.round(s.now - s.since))} s`;
+    $("offline").hidden = true;
+    const key = s.history.length + ":" + (s.history.at(-1)?.time || 0);
+    if (key !== lastHistoryKey) {
+      lastHistoryKey = key;
+      renderLast(s.history.at(-1));
+      renderStats(s.history);
+      renderHistory(s.history);
+    }
+    renderLogs(s.logs);
+  } catch {
+    $("offline").hidden = false;
+  }
+  setTimeout(poll, 1000);
+}
+
+function refreshFace() {
+  const img = new Image();
+  img.onload = () => { $("face").src = img.src; setTimeout(refreshFace, 120); };
+  img.onerror = () => setTimeout(refreshFace, 1000);
+  img.src = "/face.png?t=" + Date.now();
+}
+
+poll();
+refreshFace();
+</script>
+</body>
+</html>

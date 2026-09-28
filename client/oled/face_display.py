@@ -24,6 +24,8 @@ class FaceDisplay:
         if state not in STATES:
             raise ValueError(f"nieznany stan: {state} (dostępne: {', '.join(STATES)})")
         with self._lock:
+            if getattr(self, "_state", (None,))[0] != state:
+                self.since = time.time()
             self._state = (state, text)
 
     @property

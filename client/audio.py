@@ -9,6 +9,13 @@ def open_mic():
     return subprocess.Popen(config.MIC, stdout=subprocess.PIPE)
 
 
+def set_volume():
+    try:
+        subprocess.run(["amixer", "-q", "-c", config.SPEAKER_CARD, "sset", "Speaker", str(config.SPEAKER_VOLUME)], check=True)
+    except (OSError, subprocess.CalledProcessError) as e:
+        print(f"  (nie udało się ustawić głośności: {e})", flush=True)
+
+
 def play_word(path):
     try:
         subprocess.run(["aplay", "-q", "-D", config.OUT_DEVICE, path], check=True)
