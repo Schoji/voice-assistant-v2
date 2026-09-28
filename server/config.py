@@ -12,6 +12,8 @@ STT_MODEL = "mlx-community/Qwen3-ASR-0.6B-8bit"
 TTS_MODEL = "mlx-community/OmniVoice-bf16"
 LLM_MODEL = "mlx-community/Qwen3-8B-4bit"
 MAX_TOKENS = 100
+# TTS takes ~0.1 s per character on the M2 mini, so long answers would time out the client
+MAX_RESPONSE_CHARS = 250
 
 # "openai" -> GPT-6 Luna via API (needs OPENAI_API_KEY env var), "local" -> LLM_MODEL via mlx
 LLM_BACKEND = os.environ.get("ALEKSY_LLM_BACKEND", "openai")
@@ -21,7 +23,7 @@ OPENAI_REASONING_EFFORT = "low"
 OPENAI_MAX_COMPLETION_TOKENS = 1000
 OPENAI_TIMEOUT = 15
 # load the local model too and use it when the API call fails
-LLM_FALLBACK_LOCAL = True
+LLM_FALLBACK_LOCAL = os.environ.get("ALEKSY_LLM_FALLBACK_LOCAL", "true").lower() == "true"
 
 REF_AUDIO = "assets/aleksy_ref.wav"
 

@@ -58,7 +58,7 @@ class Brain():
         new_message =  {"role": "user", "content": user_input}
         self.messages.append(new_message)
         context = [self.messages[0]] + self.messages[1:][-6:]
-        response = cut_at_last_sentence(self.generate(context))
+        response = cut_at_last_sentence(self.generate(context)[:config.MAX_RESPONSE_CHARS])
         self.messages.append({"role": "assistant", "content": response})
         timer_stop(start)
         return response
