@@ -2,6 +2,7 @@ import mlx_audio.stt as stt
 import mlx_lm as lm
 from openai import OpenAI
 import mlx_audio.tts.utils as tts
+import re
 import time
 from mlx_audio.tts.models.omnivoice.utils import create_voice_clone_prompt
 from datetime_pl import date_time_in_words
@@ -16,6 +17,21 @@ def timer_stop(start_time):
 def cut_at_last_sentence(text):
     end = max(text.rfind("."), text.rfind("!"), text.rfind("?"))
     return text[:end + 1] if end != -1 else text
+
+def split_sentences(text):
+    chunks, current = [], ""
+    for sentence in re.split(r"(?<=[.!?])\s+", text.strip()):
+        current = f"{current} {sentence}".strip()
+        if len(current) >= config.TTS_MIN_CHUNK_CHARS:
+            chunks.append(current)
+            current = ""
+    if current:
+        chunks.append(current)
+    if chunks and len(chunks[0]) > config.TTS_FIRST_CHUNK_CHARS:
+        comma = chunks[0].find(", ", config.TTS_FIRST_CHUNK_MIN_CHARS)
+        if comma != -1:
+            chunks[:1] = [chunks[0][:comma + 1], chunks[0][comma + 2:]]
+    return chunks
 
 class Brain():
     def __init__(self):
@@ -37,6 +53,9 @@ class Brain():
         ref_text=REF_TEXT,
 )
 
+        # the first synthesis compiles the GPU kernels, better here than on the first visitor
+        for _ in self.text_to_speech("Cześć, jestem Aleksy i właśnie się rozgrzewam."):
+            pass
         print("Brain initialized")
 
     def system_prompt(self):
@@ -97,13 +116,16 @@ class Brain():
     def text_to_speech(self, input_text: str):
         start = time.time()
         print(f"Generating speech from text: {input_text}")
-        for result in self.tts_model.generate(
-            text=input_text,
-            ref_audio=REF_AUDIO,
-            ref_text= REF_TEXT,
-            ref_tokens=self.ref_tokens
-        ):
-            yield result.audio
+        # one sentence at a time, so the client starts playing after the first one instead of the whole answer
+        for chunk in split_sentences(input_text):
+            for result in self.tts_model.generate(
+                text=chunk,
+                ref_audio=REF_AUDIO,
+                ref_text= REF_TEXT,
+                ref_tokens=self.ref_tokens,
+                num_steps=config.TTS_NUM_STEPS,
+            ):
+                yield result.audio
         timer_stop(start)
 
 # brain.process("Siemka byczku co tam")

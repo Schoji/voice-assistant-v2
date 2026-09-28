@@ -12,8 +12,15 @@ STT_MODEL = "mlx-community/Qwen3-ASR-0.6B-8bit"
 TTS_MODEL = "mlx-community/OmniVoice-bf16"
 LLM_MODEL = "mlx-community/Qwen3-8B-4bit"
 MAX_TOKENS = 100
-# TTS takes ~0.1 s per character on the M2 mini, so long answers would time out the client
-MAX_RESPONSE_CHARS = 250
+# answers are spoken sentence by sentence, so this only keeps a runaway answer from talking forever
+MAX_RESPONSE_CHARS = 500
+# OmniVoice unmasking steps: time scales linearly (M2 mini, 6 s of speech: 32 -> 9.1 s, 16 -> 4.6 s)
+TTS_NUM_STEPS = 16
+# sentences shorter than this are merged with the next one, OmniVoice sounds odd on a lone "Cześć!"
+TTS_MIN_CHUNK_CHARS = 30
+# a long first sentence is split at a comma, since nothing plays until the first chunk is synthesized
+TTS_FIRST_CHUNK_CHARS = 60
+TTS_FIRST_CHUNK_MIN_CHARS = 15
 
 # "openai" -> GPT-6 Luna via API (needs OPENAI_API_KEY env var), "local" -> LLM_MODEL via mlx
 LLM_BACKEND = os.environ.get("ALEKSY_LLM_BACKEND", "openai")

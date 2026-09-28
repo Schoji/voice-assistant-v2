@@ -1,4 +1,5 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import json
 import websockets
 import time
@@ -15,8 +16,18 @@ def to_pcm16(audio):
     samples = np.clip(np.array(audio), -1.0, 1.0)
     return (samples * 32767).astype(np.int16).tobytes()
 
+def next_pcm(chunks):
+    chunk = next(chunks, None)
+    return None if chunk is None else to_pcm16(chunk)
+
 RECORDINGS_DIR.mkdir(parents=True, exist_ok=True)
-brain = Brain()
+# every model call runs on this one thread: MLX streams are per thread, and running them
+# off the event loop lets audio go out while the next sentence is still being synthesized
+models = ThreadPoolExecutor(max_workers=1)
+brain = models.submit(Brain).result()
+
+async def run(fn, *args):
+    return await asyncio.get_running_loop().run_in_executor(models, fn, *args)
 
 async def file_handler(ws):
     print("Client connected, waiting for file...")
@@ -32,13 +43,14 @@ async def file_handler(ws):
     print(f"File saved as {name}")
 
     start = time.time()
-    text = brain.speech_to_text(name)
+    text = await run(brain.speech_to_text, name)
     stt, start = time.time() - start, time.time()
-    llm_output = brain.process(text)
+    llm_output = await run(brain.process, text)
     llm, start = time.time() - start, time.time()
     print("Sending bytes to the client")
-    for chunk in brain.text_to_speech(llm_output):
-        await ws.send(to_pcm16(chunk))
+    chunks = brain.text_to_speech(llm_output)
+    while (pcm := await run(next_pcm, chunks)) is not None:
+        await ws.send(pcm)
     tts = time.time() - start
     # what the client's panel shows; clients that predate it stop reading at the first text message
     await ws.send(json.dumps({
