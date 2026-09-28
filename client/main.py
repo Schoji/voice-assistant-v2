@@ -18,6 +18,7 @@ SILENCE_LIMIT = config.SILENCE_LIMIT
 START_LIMIT = config.START_LIMIT
 MAX_FRAMES = config.MAX_FRAMES
 COOLDOWN = config.COOLDOWN
+WAKE_THRESHOLD = config.WAKE_THRESHOLD
 SLEEP_AFTER = config.SLEEP_AFTER
 ERROR_HOLD = config.ERROR_HOLD
 
@@ -49,7 +50,7 @@ try:
                     prob = mww.process_streaming_prob(f)
                     if prob > 0.5:
                         print(f"  prob={prob:.4f}", flush=True)
-                    if prob > 0.97 and time.time() - last > COOLDOWN:
+                    if prob > WAKE_THRESHOLD and time.time() - last > COOLDOWN:
                         last = time.time()
                         print("wake!", flush=True)
                         face.set("listen")
