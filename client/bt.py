@@ -12,6 +12,7 @@ import threading
 import time
 from pathlib import Path
 
+from aleksy_protocol.wire import TTS_RATE
 import config
 
 STATE_FILE = Path.home() / ".local/state/aleksy/audio.json"
@@ -91,7 +92,19 @@ def _refresh():
         _last_reconnect = time.time()
         _ctl("connect", speaker["mac"], timeout=10)
         info = _info(speaker["mac"])
-    _state.update(connected=info["connected"], sink=_find_sink(speaker["mac"]) if info["connected"] else None)
+    sink = _find_sink(speaker["mac"]) if info["connected"] else None
+    if sink and sink != _state["sink"]:
+        _wake(sink)
+    _state.update(connected=info["connected"], sink=sink)
+
+
+def _wake(sink):
+    """a fresh sink starts suspended, and waking it on the first word would eat that word;
+    after this one play it stays up (deploy/client/wireplumber/51-aleksy-bt-no-suspend.conf)"""
+    silence = b"\0" * (TTS_RATE // 5 * 2)
+    subprocess.run(["pw-cat", "--playback", "--target", sink, "--raw",
+                    "--rate", str(TTS_RATE), "--channels", "1", "--format", "s16", "-"],
+                   input=silence, capture_output=True, timeout=10)
 
 
 def _watch():
