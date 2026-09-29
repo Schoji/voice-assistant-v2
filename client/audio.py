@@ -1,6 +1,7 @@
 import random
 import subprocess
 from aleksy_protocol.wire import TTS_RATE
+import bt
 import config
 
 
@@ -16,9 +17,17 @@ def set_volume():
         print(f"  (nie udało się ustawić głośności: {e})", flush=True)
 
 
+def _file_player(path):
+    """the bluetooth speaker when one is connected, the HAT otherwise"""
+    sink = bt.sink()
+    if sink:
+        return ["pw-cat", "--playback", "--target", sink, path]
+    return ["aplay", "-q", "-D", config.OUT_DEVICE, path]
+
+
 def play_word(path):
     try:
-        subprocess.run(["aplay", "-q", "-D", config.OUT_DEVICE, path], check=True)
+        subprocess.run(_file_player(path), check=True)
     except (OSError, subprocess.CalledProcessError) as e:
         print(f"  (nie udało się odtworzyć {path}: {e})", flush=True)
 
@@ -43,13 +52,16 @@ def play_thinking_word():
     """
     path = random.choice(config.THINKING_WORDS)
     try:
-        return subprocess.Popen(["aplay", "-q", "-D", config.OUT_DEVICE, path])
+        return subprocess.Popen(_file_player(path))
     except OSError as e:
         print(f"  (nie udało się odtworzyć {path}: {e})", flush=True)
 
 
 def open_player():
-    return subprocess.Popen(
-                            ["aplay", "-D", config.OUT_DEVICE, "-r", str(TTS_RATE), "-c", "1", "-f", "S16_LE", "-t", "raw"],
-                            stdin=subprocess.PIPE,
-                        )
+    sink = bt.sink()
+    if sink:
+        cmd = ["pw-cat", "--playback", "--target", sink, "--raw",
+               "--rate", str(TTS_RATE), "--channels", "1", "--format", "s16", "-"]
+    else:
+        cmd = ["aplay", "-D", config.OUT_DEVICE, "-r", str(TTS_RATE), "-c", "1", "-f", "S16_LE", "-t", "raw"]
+    return subprocess.Popen(cmd, stdin=subprocess.PIPE)

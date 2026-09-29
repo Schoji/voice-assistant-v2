@@ -9,10 +9,12 @@ import asyncio
 import panel
 import status
 import wifi
+import bt
 
 status.capture_output()
 face = FaceDisplay().start()
 wifi.start()
+bt.start()
 panel.start(face)
 set_volume()
 play_startup_word()

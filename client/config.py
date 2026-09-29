@@ -34,6 +34,11 @@ HOTSPOT_AFTER = 45 # seconds without a network before the hotspot goes up, Netwo
 HOTSPOT_RETRY = 180 # how often the hotspot steps aside to try the saved networks again, unless someone is using it
 WIFI_CHECK_EVERY = 5
 
+# bluetooth speaker picked in the panel (bt.py), the HAT plays whenever it is not connected
+BT_CHECK_EVERY = 5
+BT_RECONNECT_EVERY = 30
+BT_SCAN_SECONDS = 10
+
 FILLER_WORD = "assets/tak.wav"
 
 STARTUP_WORD = "assets/zainicjalizowany.wav"

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Aleksy — Wi-Fi</title>
+<title>Aleksy — ustawienia</title>
 <style>
   :root {
     --bg: #0e1013; --card: #171a1f; --line: #262a31; --text: #e7e9ec; --muted: #8b929c;
@@ -51,11 +51,12 @@
 <body>
 <main>
   <header>
-    <h1>Wi-Fi</h1>
+    <h1>Ustawienia</h1>
     <a href="/">panel →</a>
   </header>
 
   <section class="card">
+    <h2>Wi-Fi</h2>
     <div class="status"><span class="dot" id="dot"></span><span id="status">…</span></div>
     <div id="notes"></div>
   </section>
@@ -66,8 +67,19 @@
   </section>
 
   <section class="card">
-    <h2>Zapamiętane</h2>
+    <h2>Zapamiętane sieci</h2>
     <ul id="saved"></ul>
+  </section>
+
+  <section class="card">
+    <h2>Głośnik Bluetooth</h2>
+    <div class="status"><span class="dot" id="btdot"></span><span id="btstatus">…</span></div>
+    <div id="btnotes"></div>
+  </section>
+
+  <section class="card">
+    <h2>Urządzenia Bluetooth <button id="btscan" type="button">Szukaj</button></h2>
+    <ul id="btdevices"></ul>
   </section>
 </main>
 
@@ -190,8 +202,64 @@ $("rescan").onclick = async () => {
   $("rescan").disabled = false;
 };
 
+let bt = null;
+
+function renderBt() {
+  const s = bt;
+  let label, color;
+  if (!s.speaker) [label, color] = ["Gra głośnik Aleksego", "var(--ok)"];
+  else if (s.sink) [label, color] = [`Gra przez ${s.speaker.name}`, "var(--ok)"];
+  else if (s.connected) [label, color] = [`${s.speaker.name} — łączę dźwięk…`, "var(--warn)"];
+  else [label, color] = [`${s.speaker.name} poza zasięgiem — gra głośnik Aleksego`, "var(--warn)"];
+  const status = [label];
+  if (s.speaker) {
+    const off = el("button", { type: "button", textContent: "Wróć do głośnika Aleksego", style: "margin-left:auto" });
+    off.onclick = () => post("/api/bt/off").then(pollBt).catch(err => alert(err.message));
+    status.push(off);
+  }
+  $("btstatus").replaceChildren(...status);
+  $("btstatus").style.cssText = "display:flex;align-items:center;gap:10px;flex:1;flex-wrap:wrap";
+  $("btdot").style.background = color;
+
+  const notes = [];
+  if (s.busy) notes.push(el("p", { className: "note busy", textContent: s.busy[0].toUpperCase() + s.busy.slice(1) + "…" }));
+  if (s.error) notes.push(el("p", { className: "note bad", textContent: s.error }));
+  $("btnotes").replaceChildren(...notes);
+  $("btscan").disabled = !!s.busy;
+
+  const list = $("btdevices");
+  if (!s.devices.length) { list.replaceChildren(el("li", { className: "empty", textContent: "Włącz w głośniku tryb parowania i kliknij „Szukaj”." })); return; }
+  list.replaceChildren(...s.devices.map(d => {
+    const chosen = s.speaker && s.speaker.mac === d.mac;
+    const tags = [d.connected && "połączone", d.paired && !d.connected && "sparowane", !d.audio && "nie audio?"].filter(Boolean).join(" · ");
+    const kids = [el("span", {}, d.name + " ", el("span", { className: "muted", textContent: tags }))];
+    if (!chosen) {
+      const use = el("button", { type: "button", className: d.audio ? "primary" : "", textContent: "Graj tutaj", disabled: !!s.busy });
+      use.onclick = () => post("/api/bt/use", { mac: d.mac }).then(pollBt).catch(err => alert(err.message));
+      kids.push(use);
+    }
+    if (d.paired) {
+      const forget = el("button", { type: "button", textContent: "Zapomnij", disabled: !!s.busy });
+      forget.onclick = () => confirm(`Zapomnieć ${d.name}?`) && post("/api/bt/forget", { mac: d.mac }).then(pollBt).catch(err => alert(err.message));
+      kids.push(forget);
+    }
+    return el("li", { className: "row" }, ...kids);
+  }));
+}
+
+async function pollBt() {
+  try {
+    bt = await (await fetch("/api/bt", { cache: "no-store" })).json();
+    renderBt();
+  } catch {}
+}
+
+$("btscan").onclick = () => post("/api/bt/scan").then(pollBt).catch(err => alert(err.message));
+
 poll();
+pollBt();
 setInterval(poll, 3000);
+setInterval(pollBt, 2000);
 </script>
 </body>
 </html>

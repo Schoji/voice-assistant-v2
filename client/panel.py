@@ -1,5 +1,6 @@
 import io
 import logging
+import re
 import threading
 import time
 from pathlib import Path
@@ -10,6 +11,7 @@ from PIL import Image, ImageDraw
 import config
 import status
 import wifi
+import bt
 from oled import oled
 from oled.face import Face
 
@@ -90,6 +92,44 @@ def wifi_forget():
         return jsonify(error="brak nazwy"), 400
     wifi.forget(name)
     return jsonify(ok=True)
+
+
+@app.get("/api/bt")
+def bt_state():
+    return jsonify(bt.snapshot())
+
+
+@app.post("/api/bt/scan")
+def bt_scan():
+    bt.scan()
+    return jsonify(ok=True), 202
+
+
+def _mac():
+    mac = ((request.get_json(silent=True) or {}).get("mac") or "").upper()
+    return mac if re.fullmatch(r"([0-9A-F]{2}:){5}[0-9A-F]{2}", mac) else None
+
+
+@app.post("/api/bt/use")
+def bt_use():
+    if not (mac := _mac()):
+        return jsonify(error="zły adres urządzenia"), 400
+    bt.use(mac)
+    return jsonify(ok=True), 202
+
+
+@app.post("/api/bt/off")
+def bt_off():
+    bt.stop_using()
+    return jsonify(ok=True), 202
+
+
+@app.post("/api/bt/forget")
+def bt_forget():
+    if not (mac := _mac()):
+        return jsonify(error="zły adres urządzenia"), 400
+    bt.forget(mac)
+    return jsonify(ok=True), 202
 
 
 def start(display):
