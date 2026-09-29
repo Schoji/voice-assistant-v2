@@ -24,6 +24,16 @@ PANEL_PORT = 5000
 PANEL_HISTORY = 50
 PANEL_LOG_LINES = 300
 
+# own hotspot when no known network is around, the panel then lets you pick a new one (wifi.py)
+WIFI_IFACE = "wlan0"
+HOTSPOT_SSID = "Aleksy"
+# written by deploy/client/setup-wifi.sh and kept out of the repo, without it there is no hotspot
+HOTSPOT_PASSWORD_FILE = "/etc/aleksy/hotspot-password"
+HOTSPOT_IP = "10.42.0.1" # NetworkManager's default for shared connections, setup-wifi.sh points dns here
+HOTSPOT_AFTER = 45 # seconds without a network before the hotspot goes up, NetworkManager needs a moment after boot
+HOTSPOT_RETRY = 180 # how often the hotspot steps aside to try the saved networks again, unless someone is using it
+WIFI_CHECK_EVERY = 5
+
 FILLER_WORD = "assets/tak.wav"
 
 STARTUP_WORD = "assets/zainicjalizowany.wav"

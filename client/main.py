@@ -8,9 +8,11 @@ import config
 import asyncio
 import panel
 import status
+import wifi
 
 status.capture_output()
 face = FaceDisplay().start()
+wifi.start()
 panel.start(face)
 set_volume()
 play_startup_word()
